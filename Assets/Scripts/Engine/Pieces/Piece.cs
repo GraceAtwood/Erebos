@@ -9,13 +9,16 @@ namespace Erebos.Engine.Pieces
 {
     public abstract class Piece : MonoBehaviour, IEquatable<Piece>
     {
+        public Material whitePiecesMaterial;
+        public Material blackPiecesMaterial;
+
         public Sides Side { get; set; }
 
         public bool HasMoved { get; set; }
 
         public abstract IEnumerable<AbstractMovement> GetPossibleMovementFrom(ChessBoardCell startingCell);
 
-        public virtual void AnimateToCell(ChessBoardCell desiredChessBoardCell)
+        public void AnimateToCell(ChessBoardCell desiredChessBoardCell)
         {
             gameObject.transform.position = desiredChessBoardCell.WorldBoardPosition;
         }
@@ -26,16 +29,14 @@ namespace Erebos.Engine.Pieces
 
             Side = startingCell.Y <= 1 ? Sides.White : Sides.Black;
             gameObject.name = $"{GetType().Name}-{Side}";
-            var meshRenderer = gameObject.AddComponent<MeshRenderer>();
-            meshRenderer.material =
-                Side == Sides.Black ? startingCell.ChessBoard.blackPiecesMaterial : startingCell.ChessBoard.whitePiecesMaterial;
+            GetComponent<MeshRenderer>().material = Side == Sides.Black ? blackPiecesMaterial : whitePiecesMaterial;
         }
 
         public void DestroyPiece()
         {
             gameObject.SetActive(false);
         }
-        
+
         public void RecoverPiece()
         {
             gameObject.SetActive(true);

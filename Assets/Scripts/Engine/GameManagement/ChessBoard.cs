@@ -6,6 +6,7 @@ using Erebos.Engine.GameManagement.Movement;
 using Erebos.Engine.Pieces;
 using UnityEngine;
 using UnityEngine.PlayerLoop;
+using UnityEngine.TestTools;
 
 namespace Erebos.Engine.GameManagement
 {
@@ -18,17 +19,10 @@ namespace Erebos.Engine.GameManagement
         public GameObject kingPrefab;
         public GameObject knightPrefab;
 
-        public Material whitePiecesMaterial;
-        public Material blackPiecesMaterial;
-
-        public float pieceRotation;
-
         // Properties that hold the game's state
         public Sides CurrentTurn { get; private set; } = Sides.Black;
 
         public int TurnNumber { get; private set; } = 1;
-
-        private readonly Dictionary<Type, GameObject> _pieceToPrefabDictionary = new Dictionary<Type, GameObject>();
 
         private ChessBoardCell[][] _boardCells;
         private Bounds _bounds;
@@ -66,13 +60,6 @@ namespace Erebos.Engine.GameManagement
 
         void Start()
         {
-            _pieceToPrefabDictionary[typeof(Pawn)] = pawnPrefab;
-            _pieceToPrefabDictionary[typeof(Rook)] = rookPrefab;
-            _pieceToPrefabDictionary[typeof(Bishop)] = bishopPrefab;
-            _pieceToPrefabDictionary[typeof(Queen)] = queenPrefab;
-            _pieceToPrefabDictionary[typeof(King)] = kingPrefab;
-            _pieceToPrefabDictionary[typeof(Knight)] = knightPrefab;
-
             _bounds = GetComponent<Renderer>().bounds;
             LocalMeshMin = transform.InverseTransformPoint(_bounds.min);
             LocalMeshMax = transform.InverseTransformPoint(_bounds.max);
@@ -138,40 +125,35 @@ namespace Erebos.Engine.GameManagement
             // Pawns
             foreach (var y in new[] {1, 6})
                 for (var x = 0; x <= 7; x++)
-                    InstantiatePieceAt<Pawn>(x, y);
+                    InstantiatePieceAt(pawnPrefab, x, y);
 
             // Rooks
             foreach (var x in new[] {0, 7})
             foreach (var y in new[] {0, 7})
-                InstantiatePieceAt<Rook>(x, y);
+                InstantiatePieceAt(rookPrefab, x, y);
 
             // Knights
             foreach (var x in new[] {1, 6})
             foreach (var y in new[] {0, 7})
-                InstantiatePieceAt<Knight>(x, y);
+                InstantiatePieceAt(knightPrefab, x, y);
 
             // Bishops
             foreach (var x in new[] {2, 5})
             foreach (var y in new[] {0, 7})
-                InstantiatePieceAt<Bishop>(x, y);
+                InstantiatePieceAt(bishopPrefab, x, y);
 
             // Queens
-            InstantiatePieceAt<Queen>(3, 0);
-            InstantiatePieceAt<Queen>(4, 7);
+            InstantiatePieceAt(queenPrefab, 3, 0);
+            InstantiatePieceAt(queenPrefab, 4, 7);
 
             // Kings
-            InstantiatePieceAt<King>(4, 0);
-            InstantiatePieceAt<King>(3, 7);
+            InstantiatePieceAt(kingPrefab, 4, 0);
+            InstantiatePieceAt(kingPrefab, 3, 7);
         }
 
-        private void InstantiatePieceAt<T>(int x, int y) where T : Piece, new()
+        private void InstantiatePieceAt(GameObject piecePrefab, int x, int y)
         {
-            if (!_pieceToPrefabDictionary.TryGetValue(typeof(T), out var prefab))
-                throw new ArgumentOutOfRangeException(nameof(T), typeof(T).Name, "Unknown piece type!");
-
-            var piece = Instantiate(prefab).AddComponent<T>();
-            piece.transform.parent = gameObject.transform;
-            piece.transform.localScale = Vector3.one;
+            var piece = Instantiate(piecePrefab, gameObject.transform).GetComponent<Piece>();
 
             var boardCell = _boardCells[x][y];
             boardCell.Piece = piece;
